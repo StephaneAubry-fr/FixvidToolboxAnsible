@@ -9,4 +9,6 @@
 
     cd ./FixvidToolboxAnsible
     ansible-playbook -i inventory.ini playbook-backup.yml
+    ansible-playbook playbook-backup.yml
 
+    ansible-inventory --list -y
