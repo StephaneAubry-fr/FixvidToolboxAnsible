@@ -1,0 +1,4 @@
+- name : Reload data
+  hosts: restore
+  roles:
+    - role: "data-restore"

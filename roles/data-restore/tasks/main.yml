@@ -1,0 +1,13 @@
+- name: Delete distant backup directory
+  file:
+    path: /tmp/backup/{{ inventory_hostname }}
+    state: absent
+
+- name: Push files
+  synchronize:
+    mode: push
+    src: ~/W/backup
+    dest: /tmp
+
+
+- include_tasks: restore-confluence.yml

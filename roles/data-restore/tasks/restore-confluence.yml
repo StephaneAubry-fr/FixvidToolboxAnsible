@@ -1,0 +1,38 @@
+- debug:
+    msg: restore data confluence
+
+- name: check for backup_confluence.sql
+  stat: path=/tmp/backup/{{ inventory_hostname }}/backup_confluence.sql
+  register: backup_confluence
+
+- name: fail if no backup_confluence.sql
+  fail: msg="No backup_confluence.sql to play"
+  when: backup_confluence.stat.exists is not true
+
+- name: Stop webapp
+  community.docker.docker_container:
+    name: "{{docker.confluence.server.ctnr_name}}"
+    state: stopped
+
+- command: "cat /tmp/backup/{{ inventory_hostname }}/backup_confluence.sql"
+  register: backup_confluence
+
+- name: psql du dump
+  community.docker.docker_container_exec:
+    container: "{{docker.confluence.db.ctnr_name}}"
+    command: "psql -U {{docker.confluence.db.user}} -d {{docker.confluence.db.name}}"
+    stdin: "{{backup_confluence.stdout}}"
+  register: result
+
+- name: Print stdout
+  debug:
+    var: result.stdout
+
+- name: Print stderr
+  debug:
+    var: result.stderr
+
+- name: Start webapp
+  community.docker.docker_container:
+    name: "{{docker.confluence.server.ctnr_name}}"
+    state: started

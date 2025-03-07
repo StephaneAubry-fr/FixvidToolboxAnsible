@@ -1,0 +1,4 @@
+- name : Install docker containers on devops
+  hosts: devops
+  roles:
+    - role: "docker-confluence"
