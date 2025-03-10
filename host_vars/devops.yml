@@ -1,7 +1,8 @@
 docker:
   images_cache: "192.168.1.224/"
+
   confluence:
-    server:
+    app:
       ctnr_name: "confluence"
       image: "atlassian/confluence:latest"
       id: "BUVS-ZF5Y-WEH4-6WMN"
@@ -12,7 +13,29 @@ docker:
       ctnr_name: "confluence-db"
       image: "postgres"
       name: "confluence-db"
-      user: "confluence-dbuser"
-      pwd: "confluence-dbpwd"
+      user: "confluence_dbuser"
+      pwd: "confluence_dbpwd"
       ports:
         - "8060:5432"
+
+  jira:
+    app:
+      ctnr_name: "jira"
+      image: "atlassian/jira-software:latest"
+      ports:
+        - "8080:8080"
+    db:
+      ctnr_name: "jira-db"
+      image: "postgres"
+      name: "jira-db"
+      user: "jira_dbuser"
+      pwd: "jira_dbpwd"
+      ports:
+        - "8061:5432"
+
+  jenkins:
+    ctnr_name: "jenkins"
+    image: "jenkins/jenkins:lts-jdk21"
+    ports:
+      - "8082:8080"
+      - "50000:50000"

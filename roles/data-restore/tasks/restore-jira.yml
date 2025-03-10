@@ -1,0 +1,38 @@
+- debug:
+    msg: restore jira confluence
+
+- name: check for jira.sql
+  stat: path=/tmp/backup/{{ inventory_hostname }}/backup_jira.sql
+  register: backup_jira
+
+- name: fail if no backup_jira.sql
+  fail: msg="No backup_jira.sql to play"
+  when: backup_jira.stat.exists is not true
+
+- name: Stop jira webapp
+  community.docker.docker_container:
+    name: "{{docker.jira.app.ctnr_name}}"
+    state: stopped
+
+- command: "cat /tmp/backup/{{ inventory_hostname }}/backup_jira.sql"
+  register: backup_jira
+
+- name: psql du dump
+  community.docker.docker_container_exec:
+    container: "{{docker.jira.db.ctnr_name}}"
+    command: "psql -U {{docker.jira.db.user}} -d {{docker.jira.db.name}}"
+    stdin: "{{backup_jira.stdout}}"
+  register: result
+
+- name: Print stdout
+  debug:
+    var: result.stdout
+
+- name: Print stderr
+  debug:
+    var: result.stderr
+
+- name: Start webapp
+  community.docker.docker_container:
+    name: "{{docker.jira.app.ctnr_name}}"
+    state: started

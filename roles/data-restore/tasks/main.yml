@@ -11,3 +11,4 @@
 
 
 - include_tasks: restore-confluence.yml
+- include_tasks: restore-jira.yml

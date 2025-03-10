@@ -9,9 +9,9 @@
   fail: msg="No backup_confluence.sql to play"
   when: backup_confluence.stat.exists is not true
 
-- name: Stop webapp
+- name: Stop confluence webapp
   community.docker.docker_container:
-    name: "{{docker.confluence.server.ctnr_name}}"
+    name: "{{docker.confluence.app.ctnr_name}}"
     state: stopped
 
 - command: "cat /tmp/backup/{{ inventory_hostname }}/backup_confluence.sql"
@@ -34,5 +34,5 @@
 
 - name: Start webapp
   community.docker.docker_container:
-    name: "{{docker.confluence.server.ctnr_name}}"
+    name: "{{docker.confluence.app.ctnr_name}}"
     state: started

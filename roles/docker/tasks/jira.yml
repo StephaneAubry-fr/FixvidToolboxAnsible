@@ -1,0 +1,19 @@
+- name: Start jira database
+  community.docker.docker_container:
+    name: "{{docker.jira.db.ctnr_name}}"
+    image: "{{docker.images_cache + docker.jira.db.image}}"
+    ports: "{{docker.jira.db.ports}}"
+    state: started
+    restart_policy: always
+    env:
+      POSTGRES_DB: "{{docker.jira.db.name}}"
+      POSTGRES_USER: "{{docker.jira.db.user}}"
+      POSTGRES_PASSWORD: "{{docker.jira.db.pwd}}"
+
+- name: Start jira webapp
+  community.docker.docker_container:
+    name: "{{docker.jira.app.ctnr_name}}"
+    image: "{{docker.images_cache + docker.jira.app.image}}"
+    ports: "{{docker.jira.app.ports}}"
+    state: started
+    restart_policy: always

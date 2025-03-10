@@ -1,0 +1,43 @@
+- name: Start confluence database
+  community.docker.docker_container:
+    name: "{{docker.confluence.db.ctnr_name}}"
+    image: "{{docker.images_cache + docker.confluence.db.image}}"
+    ports: "{{docker.confluence.db.ports}}"
+    state: started
+    restart_policy: always
+    env:
+      POSTGRES_DB: "{{docker.confluence.db.name}}"
+      POSTGRES_USER: "{{docker.confluence.db.user}}"
+      POSTGRES_PASSWORD: "{{docker.confluence.db.pwd}}"
+
+- name: Start confluence webapp
+  community.docker.docker_container:
+    name: "{{docker.confluence.app.ctnr_name}}"
+    image: "{{docker.images_cache + docker.confluence.app.image}}"
+    ports: "{{docker.confluence.app.ports}}"
+    state: started
+    restart_policy: always
+
+- name: Wait a bit for cfg file to be created
+  pause:
+    seconds: 10
+
+- name: Check existing server conf
+  community.docker.docker_container_exec:
+    container: "{{docker.confluence.app.ctnr_name}}"
+    command: "cat confluence.cfg.xml"
+  register: conf
+  changed_when: conf.stdout.find(docker.confluence.app.id) == -1
+
+- name: Set server id
+  when: conf.stdout.find(docker.confluence.app.id) == -1
+  block:
+  - name: Modify confluence.cfg.xml
+    community.docker.docker_container_exec:
+      container: "{{docker.confluence.app.ctnr_name}}"
+      command: "sed -i 's;<properties>;<properties><property name=\"confluence.setup.server.id\">{{docker.confluence.app.id}}</property>;' confluence.cfg.xml"
+
+  - name: Restart server
+    community.docker.docker_container:
+      name: "{{docker.confluence.app.ctnr_name}}"
+      restart : true

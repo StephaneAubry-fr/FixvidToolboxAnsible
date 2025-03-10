@@ -1,0 +1,17 @@
+- name: Start jenkins webapp
+  community.docker.docker_container:
+    name: "{{docker.jenkins.ctnr_name}}"
+    image: "{{docker.images_cache + docker.jenkins.image}}"
+    ports: "{{docker.jenkins.ports}}"
+    state: started
+    restart_policy: always
+
+- name: retrieve initialAdminPassword
+  community.docker.docker_container_exec:
+    container: "{{docker.jenkins.ctnr_name}}"
+    command: "cat /var/jenkins_home/secrets/initialAdminPassword"
+  register: jenkins_init_pwd
+
+- name: Print Jenkins init pwd
+  debug:
+    var: jenkins_init_pwd.stdout

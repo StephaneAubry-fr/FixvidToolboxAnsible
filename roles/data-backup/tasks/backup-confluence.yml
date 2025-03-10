@@ -1,27 +1,24 @@
-- debug:
-    msg: backup data confluence
-
-- name: Stop webapp
+- name: Stop confluence webapp
   docker_container:
-    name: confluence
+    name: "{{docker.confluence.app.ctnr_name}}"
     state: stopped
 
 - name: pg_dump de la base confluence
   community.docker.docker_container_exec:
     container: "{{docker.confluence.db.ctnr_name}}"
-    command: "pg_dump -U {{docker.confluence.db.user}} -c {{docker.confluence.db.name}}"
+    command: "pg_dump -U {{docker.confluence.db.user}} -d {{docker.confluence.db.name}}"
   register: result
 
-- name: Start webapp
+- name: Start confluence webapp
   docker_container:
-    name: confluence
+    name: "{{docker.confluence.app.ctnr_name}}"
     state: started
 
 #- name: Print stdout
 #  debug:
 #    var: result.stdout
 
-- name: Write backup file
+- name: Write confluence backup file
   copy:
     content: "{{result.stdout}}"
     dest: /tmp/backup/{{inventory_hostname}}/backup_confluence.sql

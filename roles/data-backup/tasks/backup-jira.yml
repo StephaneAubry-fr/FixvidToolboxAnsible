@@ -1,5 +1,24 @@
+- name: Stop jira webapp
+  docker_container:
+      name: "{{docker.jira.app.ctnr_name}}"
+      state: stopped
 
-- debug:
-    msg: backup data jira
+- name: pg_dump de la base jira
+  community.docker.docker_container_exec:
+      container: "{{docker.jira.db.ctnr_name}}"
+      command: "pg_dump -U {{docker.jira.db.user}} -d {{docker.jira.db.name}}"
+  register: result
 
+- name: Start jira webapp
+  docker_container:
+      name: "{{docker.confluence.app.ctnr_name}}"
+      state: started
 
+#- name: Print stdout
+#  debug:
+#    var: result.stdout
+
+- name: Write jira backup file
+  copy:
+      content: "{{result.stdout}}"
+      dest: /tmp/backup/{{inventory_hostname}}/backup_jira.sql
