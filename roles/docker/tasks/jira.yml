@@ -16,4 +16,5 @@
     image: "{{docker.images_cache + docker.jira.app.image}}"
     ports: "{{docker.jira.app.ports}}"
     state: started
-    restart_policy: always
+    restart_policy: "no"
+    #restart_policy: always

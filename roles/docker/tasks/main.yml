@@ -1,3 +1,4 @@
 - include_tasks: confluence.yml
 - include_tasks: jira.yml
 - include_tasks: jenkins.yml
+- include_tasks: artifactory.yml

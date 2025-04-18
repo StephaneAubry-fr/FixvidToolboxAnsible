@@ -16,7 +16,8 @@
     image: "{{docker.images_cache + docker.confluence.app.image}}"
     ports: "{{docker.confluence.app.ports}}"
     state: started
-    restart_policy: always
+    restart_policy: "no"
+    #restart_policy: always
 
 - name: Wait a bit for cfg file to be created
   pause:

@@ -39,3 +39,23 @@ docker:
     ports:
       - "8082:8080"
       - "50000:50000"
+
+  artifactory:
+    home: ~/jfrog
+    network: "artifactory-net"
+    app:
+      ctnr_name: "artifactory"
+      image: "releases-docker.jfrog.io/jfrog/artifactory-oss:latest"
+      ports:
+        - "8091:8081"
+        - "8092:8082"
+#        - "8046:8046"
+#        - "8070:8070"
+    db:
+      ctnr_name: "artifactory-db"
+      image: "postgres"
+      name: "artifactory-db"
+      user: "artifactory_dbuser"
+      pwd: "artifactory_dbpwd"
+      ports:
+        - "8062:5432"

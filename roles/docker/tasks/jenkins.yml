@@ -6,10 +6,20 @@
     state: started
     restart_policy: always
 
+- name: Create ssh directory
+  community.docker.docker_container_exec:
+    container: "{{docker.jenkins.ctnr_name}}"
+    command: mkdir -p /var/jenkins_home/.ssh
+
+- name: Register github as known host
+  community.docker.docker_container_exec:
+    container: "{{docker.jenkins.ctnr_name}}"
+    command: ssh-keyscan -t ed25519 github.com > ~/.ssh/known_hosts
+
 - name: retrieve initialAdminPassword
   community.docker.docker_container_exec:
     container: "{{docker.jenkins.ctnr_name}}"
-    command: "cat /var/jenkins_home/secrets/initialAdminPassword"
+    command: /bin/bash -c "cat /var/jenkins_home/secrets/initialAdminPassword 2>/dev/null || echo 'init already done'"
   register: jenkins_init_pwd
 
 - name: Print Jenkins init pwd

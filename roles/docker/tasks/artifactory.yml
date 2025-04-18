@@ -1,0 +1,84 @@
+## set fact
+- name: Record artifactory path
+  command : echo {{docker.artifactory.home}}
+  register: path
+
+- name: compute db url
+  set_fact:
+    dburl: "jdbc:postgresql://{{docker.artifactory.db.ctnr_name}}:5432/{{ docker.artifactory.db.name }}"
+
+- debug:
+    msg: "connecting artifactory on {{ dburl }}"
+
+## JFROG_HOME
+- name: check bash aliases exists
+  file:
+    path: ~/.bash_aliases
+    state: touch
+
+- name: set JFrog home
+  lineinfile:
+    path: ~/.bash_aliases
+    search_string: 'JFROG_HOME'
+    line: "export JFROG_HOME={{docker.artifactory.home}}"
+
+## app to db config
+- name: Creates artifactory work dir
+  file:
+    path: "{{ path.stdout }}/artifactory/var/etc/"
+    state: directory
+  become: yes
+
+- name: Create jfrog-app dbconfig file
+  copy:
+    dest: "{{ path.stdout }}/artifactory/var/etc/system.yaml"
+    content: |
+      shared:
+        database:
+          driver: org.postgresql.Driver
+          type: postgresql
+          url: {{ dburl }}
+          username: {{ docker.artifactory.db.user }}
+          password: {{ docker.artifactory.db.pwd }}
+  become: yes
+
+- name: Set owner group artifactory work dir
+  file:
+    path: "{{ path.stdout }}/artifactory/var"
+    state: directory
+    recurse: true
+    owner: 1030
+    group: 1030
+  become: yes
+
+# DB container
+- name: Start artifactory database
+  community.docker.docker_container:
+    name: "{{docker.artifactory.db.ctnr_name}}"
+    image: "{{docker.images_cache + docker.artifactory.db.image}}"
+    ports: "{{docker.artifactory.db.ports}}"
+    state: started
+    restart_policy: always
+    env:
+      POSTGRES_DB: "{{docker.artifactory.db.name}}"
+      POSTGRES_USER: "{{docker.artifactory.db.user}}"
+      POSTGRES_PASSWORD: "{{docker.artifactory.db.pwd}}"
+
+# App container
+- name: Start artifactory webapp
+  community.docker.docker_container:
+    name: "{{docker.artifactory.app.ctnr_name}}"
+    image: "{{docker.images_cache + docker.artifactory.app.image}}"
+    ports: "{{docker.artifactory.app.ports}}"
+    state: started
+    restart_policy: always
+    volumes:
+      - "{{ path.stdout }}/artifactory/var/:/var/opt/jfrog/artifactory"
+
+# Network
+- name: Set app and db on same network
+  community.docker.docker_network:
+    name: "{{docker.artifactory.network}}"
+    connected:
+      - "{{docker.artifactory.app.ctnr_name}}"
+      - "{{docker.artifactory.db.ctnr_name}}"
